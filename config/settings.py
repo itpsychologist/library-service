@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -82,6 +83,18 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": False,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    # Назва самого HTTP-заголовка. За замовчуванням це "Authorization".
+    # Змінюємо на "Authorize", щоб зручніше працювати з ModHeader —
+    # розширення показує назву заголовка прямо у списку, і деяким
+    # зручніше відрізняти власний заголовок від стандартного браузерного.
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZE",
 }
 
 
