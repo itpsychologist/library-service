@@ -1,0 +1,37 @@
+# Python version: 3.12
+
+# Core
+Django>=4.2,<5.0
+djangorestframework>=3.14,<3.15
+
+# Database
+psycopg2-binary>=2.9,<3.0
+
+# Authentication (JWT)
+djangorestframework-simplejwt==5.3.1
+
+# Environment variables
+python-dotenv>=1.0,<2.0
+
+# Background tasks (choose Django-Q or Celery, both listed)
+django-q2>=1.6,<2.0
+celery>=5.3,<6.0
+redis>=5.0,<6.0
+
+# Payments
+stripe>=7.0,<8.0
+
+# Telegram notifications
+python-telegram-bot>=20.0,<21.0
+requests>=2.31,<3.0
+
+# API documentation
+drf-yasg>=1.21,<2.0
+
+# Testing & code quality
+flake8>=7.0,<8.0
+black>=24.0,<25.0
+coverage>=7.4,<8.0
+
+# WSGI server (for production / docker)
+gunicorn>=21.2,<22.0
