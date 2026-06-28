@@ -33,7 +33,8 @@ class AnonymousBookApiTests(APITestCase):
         sample_book()
         res = self.client.get(BOOKS_URL)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data["count"], 1)
+        self.assertEqual(len(res.data["results"]), 1)
 
     def test_retrieve_book_allowed(self):
         book = sample_book()
