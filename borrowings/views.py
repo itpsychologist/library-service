@@ -1,27 +1,54 @@
+from django.utils.translation import gettext_lazy as _
 from rest_framework import generics, permissions
+from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 
 from .models import Borrowing
 from .serializers import BorrowingReadSerializer, BorrowingCreateSerializer
 
 
+def _parse_bool_param(value: str, param_name: str) -> bool:
+
+    normalized = value.strip().lower()
+    if normalized in ("true", "1"):
+        return True
+    if normalized in ("false", "0"):
+        return False
+    raise ValidationError(
+        {param_name: _("Must be 'true' or 'false'.")}
+    )
+
+
 class BorrowingListView(generics.ListAPIView):
-    """GET /api/borrowings/ — реалізовано в п.3."""
 
     serializer_class = BorrowingReadSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Повна логіка фільтрації (is_active, user_id для staff) — у п.5.
-        # Тут лишається базове розмежування "свої / усі", щоб п.4 не
-        # розкривав чужі запозичення вже на цьому етапі.
         user = self.request.user
         qs = Borrowing.objects.select_related("book", "user")
-        return qs if user.is_staff else qs.filter(user=user)
+
+        qs = qs if user.is_staff else qs.filter(user=user)
+
+        is_active_param = self.request.query_params.get("is_active")
+        if is_active_param is not None:
+            is_active = _parse_bool_param(is_active_param, "is_active")
+            qs = qs.filter(actual_return_date__isnull=is_active)
+
+        user_id_param = self.request.query_params.get("user_id")
+        if user_id_param is not None and user.is_staff:
+            try:
+                user_id = int(user_id_param)
+            except (TypeError, ValueError):
+                raise ValidationError(
+                    {"user_id": _("Must be a valid integer.")}
+                )
+            qs = qs.filter(user_id=user_id)
+
+        return qs
 
 
 class BorrowingDetailView(generics.RetrieveAPIView):
-    """GET /api/borrowings/<id>/ — реалізовано в п.3."""
 
     serializer_class = BorrowingReadSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -29,13 +56,6 @@ class BorrowingDetailView(generics.RetrieveAPIView):
 
 
 class BorrowingCreateView(generics.CreateAPIView):
-    """
-    POST /api/borrowings/ — новий, п.4.
-
-    Створює нове запозичення для поточного автентифікованого користувача.
-    Книга береться з тіла запиту (`book` — id), `user` підставляється
-    автоматично з request.user — клієнт не може його передати.
-    """
 
     queryset = Borrowing.objects.all()
     serializer_class = BorrowingCreateSerializer
@@ -43,13 +63,6 @@ class BorrowingCreateView(generics.CreateAPIView):
 
 
 class BorrowingListCreateDispatchView(APIView):
-    """
-    Тонка диспетчерська обгортка над двома окремими views.
-
-    Існує лише тому, що Django вимагає рівно один view-клас на path().
-    Бізнес-логіка повністю лежить у BorrowingListView/BorrowingCreateView —
-    цей клас нічого не вирішує сам, лише делегує виклик за HTTP-методом.
-    """
 
     permission_classes = [permissions.IsAuthenticated]
 
