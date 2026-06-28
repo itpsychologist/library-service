@@ -2,7 +2,24 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework import serializers
 
+from books.serializers import BookSerializer
 from .models import Borrowing
+
+
+class BorrowingReadSerializer(serializers.ModelSerializer):
+    book = BookSerializer(read_only=True)
+
+    class Meta:
+        model = Borrowing
+        fields = (
+            "id",
+            "borrow_date",
+            "expected_return_date",
+            "actual_return_date",
+            "book",
+            "user",
+        )
+        read_only_fields = fields
 
 
 class BorrowingCreateSerializer(serializers.ModelSerializer):
