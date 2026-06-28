@@ -65,3 +65,39 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
             )
 
         return borrowing
+
+
+class BorrowingReturnSerializer(serializers.Serializer):
+
+    def validate(self, attrs):
+        borrowing: Borrowing = self.instance
+
+        if borrowing.actual_return_date is not None:
+            raise serializers.ValidationError(
+                "This borrowing is already returned."
+            )
+        return attrs
+
+    def save(self, **kwargs):
+        borrowing: Borrowing = self.instance
+
+        with transaction.atomic():
+
+            borrowing = (
+                Borrowing.objects.select_for_update().get(pk=borrowing.pk)
+            )
+            if borrowing.actual_return_date is not None:
+                raise serializers.ValidationError(
+                    "This borrowing is already returned."
+                )
+
+            borrowing.actual_return_date = timezone.now().date()
+            borrowing.save(update_fields=["actual_return_date"])
+
+            book = type(borrowing.book).objects.select_for_update().get(
+                pk=borrowing.book_id
+            )
+            book.inventory += 1
+            book.save(update_fields=["inventory"])
+
+        return borrowing
