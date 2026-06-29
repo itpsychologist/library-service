@@ -3,6 +3,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from books.serializers import BookSerializer
+from notifications.telegram import send_telegram_message
 from .models import Borrowing
 
 
@@ -23,7 +24,6 @@ class BorrowingReadSerializer(serializers.ModelSerializer):
 
 
 class BorrowingCreateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Borrowing
         fields = ("id", "expected_return_date", "book")
@@ -45,7 +45,6 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-
         with transaction.atomic():
             book = validated_data["book"]
 
@@ -64,8 +63,20 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
                 user=self.context["request"].user,
             )
 
+        self._notify_new_borrowing(borrowing)
+
         return borrowing
 
+    @staticmethod
+    def _notify_new_borrowing(borrowing: Borrowing) -> None:
+        text = (
+            "📚 Нове запозичення\n"
+            f"Користувач: {borrowing.user.email}\n"
+            f"Книга: {borrowing.book.title} ({borrowing.book.author})\n"
+            f"Дата видачі: {borrowing.borrow_date}\n"
+            f"Очікувана дата повернення: {borrowing.expected_return_date}"
+        )
+        send_telegram_message(text)
 
 class BorrowingReturnSerializer(serializers.Serializer):
 

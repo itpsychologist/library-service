@@ -183,7 +183,7 @@ STRIPE_PUBLISHABLE_KEY=your-stripe-publishable-key
 ## Тестування
 
 ```bash
-python manage.py test
+python manage.py tests
 ```
 
 Покриття тестами власного коду — щонайменше 60%.

@@ -11,7 +11,7 @@ ME_URL = reverse("users:manage_user")
 
 class UserApiTests(APITestCase):
     def test_register_user_success(self):
-        payload = {"email": "test@example.com", "password": "testpass123"}
+        payload = {"email": "tests@example.com", "password": "testpass123"}
         res = self.client.post(REGISTER_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
@@ -21,11 +21,11 @@ class UserApiTests(APITestCase):
 
     def test_obtain_token_for_valid_credentials(self):
         get_user_model().objects.create_user(
-            email="test@example.com", password="testpass123"
+            email="tests@example.com", password="testpass123"
         )
         res = self.client.post(
             TOKEN_URL,
-            {"email": "test@example.com", "password": "testpass123"},
+            {"email": "tests@example.com", "password": "testpass123"},
         )
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertIn("access", res.data)
@@ -37,7 +37,7 @@ class UserApiTests(APITestCase):
 
     def test_me_returns_own_profile(self):
         user = get_user_model().objects.create_user(
-            email="test@example.com", password="testpass123"
+            email="tests@example.com", password="testpass123"
         )
         self.client.force_authenticate(user)
         res = self.client.get(ME_URL)
