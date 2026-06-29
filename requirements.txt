@@ -6,6 +6,8 @@ djangorestframework>=3.14,<3.15
 
 # Database
 psycopg2-binary>=2.9,<3.0
+django-q2==1.7.3
+psycopg2-binary==2.9.9
 
 # Authentication (JWT)
 djangorestframework-simplejwt==5.3.1
